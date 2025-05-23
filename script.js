@@ -1,40 +1,73 @@
-const fill = document.querySelector(".fill");
-const empties = document.querySelectorAll(".empty");
+// Ref: https://developer.mozilla.org/fr/docs/Web/API/Canvas_API
+const canvas = document.getElementById("canvas");
+const increaseButton = document.getElementById("increase");
+const decreaseButton = document.getElementById("decrease");
+const sizeElement = document.getElementById("size");
+const colorElement = document.getElementById("color");
+const clearElement = document.getElementById("clear");
+const ctx = canvas.getContext("2d");
 
-const dragStart = function () {
-  this.className += " hold";
-  setTimeout(() => (this.className = "invisible"), 0);
+let size = 10;
+let color = "black";
+let x;
+let y;
+let isPressed = false;
+
+const drawCircle = (x, y) => {
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
 };
 
-const dragEnd = function () {
-  this.className = "fill";
+const drawLine = (x1, y1, x2, y2) => {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = size * 2;
+  ctx.stroke();
 };
 
-const dragOver = function (e) {
-  // Ref: https://developer.cdn.mozilla.net/en-US/docs/Web/API/Document/dragover_event
-  e.preventDefault();
-};
+const updateSizeOnScreen = () => (sizeElement.innerText = size);
 
-const dragEnter = function (e) {
-  e.preventDefault();
-  this.className += " hovered";
-};
+canvas.addEventListener("mousedown", (e) => {
+  isPressed = true;
+  x = e.offsetX;
+  y = e.offsetY;
+});
 
-const dragLeave = function () {
-  this.className = "empty";
-};
+canvas.addEventListener("mouseup", (e) => {
+  isPressed = false;
+  x = undefined;
+  y = undefined;
+});
 
-const dragDrop = function () {
-  this.className = "empty";
-  this.append(fill);
-};
+canvas.addEventListener("mousemove", (e) => {
+  if (isPressed) {
+    x2 = e.offsetX;
+    y2 = e.offsetY;
+    drawCircle(x2, y2);
+    drawLine(x, y, x2, y2);
+    x = x2;
+    y = y2;
+  }
+});
 
-fill.addEventListener("dragstart", dragStart);
-fill.addEventListener("dragend", dragEnd);
+increaseButton.addEventListener("click", () => {
+  size += 5;
+  if (size > 50) size = 50;
+  updateSizeOnScreen();
+});
 
-for (const empty of empties) {
-  empty.addEventListener("dragover", dragOver);
-  empty.addEventListener("dragenter", dragEnter);
-  empty.addEventListener("dragleave", dragLeave);
-  empty.addEventListener("drop", dragDrop);
-}
+decreaseButton.addEventListener("click", () => {
+  size -= 5;
+  if (size < 5) size = 5;
+  updateSizeOnScreen();
+});
+
+colorElement.addEventListener("change", (e) => (color = e.target.value));
+
+clearElement.addEventListener("click", () =>
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+);
